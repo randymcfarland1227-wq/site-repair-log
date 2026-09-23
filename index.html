@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Site Repair Log</title>
+  <meta name="description" content="Repairs, design changes, and flow ideas for every site — synced both ways with the Google Sheet.">
+  <meta name="theme-color" content="#f6f4f0" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#171613" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2323211d'/%3E%3Cpath d='M40 14a10 10 0 0 0-9.5 13.1L16 41.6a4 4 0 0 0 5.7 5.7l14.5-14.5A10 10 0 0 0 50 24l-6 6-6-2-2-6 6-6a10 10 0 0 0-2-2z' fill='%23f6f4f0'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-inner">
+      <div>
+        <p class="eyebrow">Repairs · Design · Flows</p>
+        <h1>Site Repair Log</h1>
+      </div>
+      <div class="top-actions">
+        <button class="sync-pill" id="syncPill" type="button" title="Refresh from the Sheet">
+          <span class="dot"></span><span id="syncText">Loading…</span>
+        </button>
+        <a class="btn ghost" id="sheetLink" target="_blank" rel="noopener">Open Sheet ↗</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="stats" id="stats"></section>
+
+    <form class="quick-add card" id="quickAdd" autocomplete="off">
+      <select id="qaSite" aria-label="Site" required></select>
+      <input id="qaTitle" type="text" placeholder="What needs fixing, or what's the idea?" aria-label="Item" required>
+      <select id="qaType" aria-label="Type"></select>
+      <button class="btn primary" type="submit">Add</button>
+    </form>
+
+    <nav class="tabs" role="tablist">
+      <a href="#/board" data-view="board" role="tab">Board</a>
+      <a href="#/list" data-view="list" role="tab">All Items</a>
+    </nav>
+
+    <section id="view"></section>
+  </main>
+
+  <dialog id="modal"><form method="dialog" id="modalForm"></form></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
