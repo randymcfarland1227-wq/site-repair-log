@@ -206,6 +206,7 @@ function render() {
   if (view === 'site' && arg) renderSite(decodeURIComponent(arg));
   else if (view === 'list') renderList();
   else renderBoard();
+  notifyRepairWorkroom();
 }
 
 function renderSync() {
@@ -467,6 +468,99 @@ function pullIfIdle() {
 window.addEventListener('focus', pullIfIdle);
 document.addEventListener('visibilitychange', pullIfIdle);
 setInterval(() => { renderSync(); if (Date.now() - lastPull >= 60000) pullIfIdle(); }, 20000);
+
+
+// ---------------------------------------------------------------------
+// Life Hub bridge (source id `repair`)
+// Stars live in localStorage; complete marks Done via updateItem.
+// ---------------------------------------------------------------------
+const WORKROOM_ORIGINS = [
+  'https://randymcfarland1227-wq.github.io',
+  'https://frontier-work-room.randymcfarland1227.workers.dev',
+];
+const WORKROOM_ORIGIN = WORKROOM_ORIGINS[0];
+const REPAIR_ORIGIN_URL = 'https://randymcfarland1227-wq.github.io/site-repair-log/#/board';
+function isWorkroomOrigin(origin) { return WORKROOM_ORIGINS.includes(origin); }
+const REPAIR_STAR_KEY = 'site-repair-log.lifeHubStars';
+
+function readRepairStars() {
+  try { return new Set(JSON.parse(localStorage.getItem(REPAIR_STAR_KEY) || '[]')); } catch { return new Set(); }
+}
+function writeRepairStars(set) {
+  try { localStorage.setItem(REPAIR_STAR_KEY, JSON.stringify([...set])); } catch {}
+}
+function isRepairStarred(id) { return readRepairStars().has(String(id)); }
+function setRepairStarred(id, starred) {
+  const set = readRepairStars();
+  if (starred) set.add(String(id)); else set.delete(String(id));
+  writeRepairStars(set);
+}
+
+function repairWorkroomSnapshot() {
+  const open = state.items.filter(isOpen);
+  const inProgress = state.items.filter(i => i.status === 'In Progress');
+  const done = state.items.filter(i => i.status === 'Done');
+  const tasks = open.map(i => ({
+    id: String(i.id),
+    title: i.title,
+    detail: [i.site, i.type, i.details].filter(Boolean).join(' · ') || undefined,
+    status: i.status === 'In Progress' ? 'open' : (i.status === 'Idea' ? 'open' : 'open'),
+    starred: isRepairStarred(i.id),
+    originUrl: REPAIR_ORIGIN_URL,
+  }));
+  const featured = open.filter(i => isRepairStarred(i.id)).map(i => ({
+    id: String(i.id),
+    title: i.title,
+    detail: i.details || i.type || '',
+    meta: [i.site, i.priority].filter(Boolean).join(' · '),
+    originUrl: REPAIR_ORIGIN_URL,
+    completable: true,
+  }));
+  return {
+    source: 'repair',
+    metrics: { open: open.length, inProgress: inProgress.length, done: done.length },
+    featured,
+    tasks,
+    refreshedAt: (state.syncedAt && state.syncedAt.toISOString) ? state.syncedAt.toISOString() : new Date().toISOString(),
+  };
+}
+
+function notifyRepairWorkroom() {
+  const message = { type: 'randys-workroom:snapshot', payload: repairWorkroomSnapshot() };
+  for (const origin of WORKROOM_ORIGINS) {
+    try { if (window.opener && !window.opener.closed) window.opener.postMessage(message, origin); } catch {}
+    try { if (window.parent !== window) window.parent.postMessage(message, origin); } catch {}
+  }
+}
+
+async function completeRepairWorkroomItem(id) {
+  const item = state.items.find(i => String(i.id) === String(id));
+  if (!item) return;
+  if (!CLOSED.has(item.status)) {
+    await updateItem(item.id, { status: 'Done' }, 'Marked done');
+  }
+  setRepairStarred(id, false);
+  notifyRepairWorkroom();
+}
+
+function starRepairWorkroomItem(id, starred) {
+  const next = typeof starred === 'boolean' ? starred : !isRepairStarred(id);
+  setRepairStarred(id, next);
+  render();
+}
+
+window.addEventListener('message', event => {
+  if (!isWorkroomOrigin(event.origin)) return;
+  const type = event.data?.type;
+  if (type === 'randys-workroom:request') {
+    event.source?.postMessage({ type: 'randys-workroom:snapshot', payload: repairWorkroomSnapshot() }, event.origin);
+    return;
+  }
+  const payload = event.data?.payload || {};
+  if (payload.source && payload.source !== 'repair') return;
+  if (type === 'randys-workroom:complete') completeRepairWorkroomItem(payload.id);
+  if (type === 'randys-workroom:star') starRepairWorkroomItem(payload.id, payload.starred);
+});
 
 if (!location.hash) history.replaceState(null, '', '#/board');
 load();
