@@ -35,6 +35,20 @@ var SEED_SITES = [
   'Adventure Log', 'Move OS', 'Nutrition Site',
   'Goal Hub', 'Routines/TickTick', 'Workroom Overview'
 ];
+// Sites added after the Sheet was first set up. addMissingSites() appends any
+// that aren't on the Sites tab yet, once per batch (so deleting one later sticks).
+var ADDED_SITES_KEY = 'addedSites_2026_09_23';
+var ADDED_SITES = [
+  ['Fulfillment & Meaning', '', 'Personal reflection OS: reflect, understand, align, design. Repo: fulfillment-hub'],
+  ['Income & Venture Lab', 'https://randymcfarland1227-wq.github.io/income-venture-lab/', 'Income ideas, ventures, investment research, experiments. Repo: income-venture-lab'],
+  ['My Music Hub', '', 'Monthly music reviews, vocal warm-ups, music advancement sessions. Repo: my-music-hub'],
+  ['Vocal Glow', '', 'Guided daily vocal warm-up routine. Repo: vocal-glow'],
+  ['The Inner Archive', '', 'Artist identity / creative reference (The Feeling, Transmuted). Repo: the-inner-archive'],
+  ['Peculiar Candle Storefront', '', 'Customer-facing Peculiar Candle Co. shop. Not on GitHub.'],
+  ['Peculiar Command Center', 'https://randymcfarland1227-wq.github.io/peculiar-command-center/', 'Internal pre-launch studio for Peculiar Candle Co. Repo: peculiar-command-center'],
+  ['Peculiar Storefront Backend', '', 'Private owner floor: orders, shipping, returns, stock, ledger. Repo: peculiar-storefront-backend'],
+  ['Peculiar Candles Workshop', '', 'Jars, oils, wicks inventory, candle log, ratio calculator. Repo: peculiar-candles']
+];
 var SEED_ITEMS = [
   ['Sales Hub', "I don't like the colors of the site or the font", 'Design'],
   ['Sales Hub', 'The photos for the new items are not showing on the site', 'Bug'],
@@ -107,7 +121,7 @@ function onEdit(e) {
 
 function ensureSetup() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  if (ss.getSheetByName(LOG_SHEET) && ss.getSheetByName(SITES_SHEET)) return;
+  if (ss.getSheetByName(LOG_SHEET) && ss.getSheetByName(SITES_SHEET)) { addMissingSites(); return; }
 
   var original = ss.getSheetByName('Sheet1');
   if (original && !ss.getSheetByName(ORIGINAL_SHEET)) original.setName(ORIGINAL_SHEET);
@@ -131,6 +145,17 @@ function ensureSetup() {
     formatLog(log);
   }
   ss.setActiveSheet(log);
+  addMissingSites();
+}
+
+function addMissingSites() {
+  var props = PropertiesService.getScriptProperties();
+  if (props.getProperty(ADDED_SITES_KEY)) return;
+  var sheet = sheetByName(SITES_SHEET);
+  ADDED_SITES.forEach(function (s) {
+    if (!findRow(sheet, 1, s[0])) sheet.appendRow([s[0], s[1], s[2], sheet.getLastRow()]);
+  });
+  props.setProperty(ADDED_SITES_KEY, '1');
 }
 
 function styleHeader(sheet, n) {

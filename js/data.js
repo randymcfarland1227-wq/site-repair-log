@@ -10,7 +10,18 @@ const SEED_SITES = [
   'Occp Search Hub', 'Sales Hub', 'Session Notes (Ableton)',
   'Adventure Log', 'Move OS', 'Nutrition Site',
   'Goal Hub', 'Routines/TickTick', 'Workroom Overview',
-].map((name, i) => ({ name, url: '', notes: '', order: i + 1 }));
+].map((name, i) => ({ name, url: '', notes: '', order: i + 1 })).concat([
+  // Mirrors ADDED_SITES in Code.gs.
+  ['Fulfillment & Meaning', '', 'Personal reflection OS: reflect, understand, align, design. Repo: fulfillment-hub'],
+  ['Income & Venture Lab', 'https://randymcfarland1227-wq.github.io/income-venture-lab/', 'Income ideas, ventures, investment research, experiments. Repo: income-venture-lab'],
+  ['My Music Hub', '', 'Monthly music reviews, vocal warm-ups, music advancement sessions. Repo: my-music-hub'],
+  ['Vocal Glow', '', 'Guided daily vocal warm-up routine. Repo: vocal-glow'],
+  ['The Inner Archive', '', 'Artist identity / creative reference (The Feeling, Transmuted). Repo: the-inner-archive'],
+  ['Peculiar Candle Storefront', '', 'Customer-facing Peculiar Candle Co. shop. Not on GitHub.'],
+  ['Peculiar Command Center', 'https://randymcfarland1227-wq.github.io/peculiar-command-center/', 'Internal pre-launch studio for Peculiar Candle Co. Repo: peculiar-command-center'],
+  ['Peculiar Storefront Backend', '', 'Private owner floor: orders, shipping, returns, stock, ledger. Repo: peculiar-storefront-backend'],
+  ['Peculiar Candles Workshop', '', 'Jars, oils, wicks inventory, candle log, ratio calculator. Repo: peculiar-candles'],
+].map(([name, url, notes], i) => ({ name, url, notes, order: 10 + i })));
 
 const SEED_ITEMS = [
   ['Sales Hub', "I don't like the colors of the site or the font", 'Design'],
