@@ -474,8 +474,13 @@ setInterval(() => { renderSync(); if (Date.now() - lastPull >= 60000) pullIfIdle
 // Life Hub bridge (source id `repair`)
 // Stars live in localStorage; complete marks Done via updateItem.
 // ---------------------------------------------------------------------
-const WORKROOM_ORIGIN = 'https://frontier-work-room.randymcfarland1227.workers.dev';
+const WORKROOM_ORIGINS = [
+  'https://randymcfarland1227-wq.github.io',
+  'https://frontier-work-room.randymcfarland1227.workers.dev',
+];
+const WORKROOM_ORIGIN = WORKROOM_ORIGINS[0];
 const REPAIR_ORIGIN_URL = 'https://randymcfarland1227-wq.github.io/site-repair-log/#/board';
+function isWorkroomOrigin(origin) { return WORKROOM_ORIGINS.includes(origin); }
 const REPAIR_STAR_KEY = 'site-repair-log.lifeHubStars';
 
 function readRepairStars() {
@@ -522,8 +527,10 @@ function repairWorkroomSnapshot() {
 
 function notifyRepairWorkroom() {
   const message = { type: 'randys-workroom:snapshot', payload: repairWorkroomSnapshot() };
-  try { if (window.opener && !window.opener.closed) window.opener.postMessage(message, WORKROOM_ORIGIN); } catch {}
-  try { if (window.parent !== window) window.parent.postMessage(message, WORKROOM_ORIGIN); } catch {}
+  for (const origin of WORKROOM_ORIGINS) {
+    try { if (window.opener && !window.opener.closed) window.opener.postMessage(message, origin); } catch {}
+    try { if (window.parent !== window) window.parent.postMessage(message, origin); } catch {}
+  }
 }
 
 async function completeRepairWorkroomItem(id) {
@@ -543,7 +550,7 @@ function starRepairWorkroomItem(id, starred) {
 }
 
 window.addEventListener('message', event => {
-  if (event.origin !== WORKROOM_ORIGIN) return;
+  if (!isWorkroomOrigin(event.origin)) return;
   const type = event.data?.type;
   if (type === 'randys-workroom:request') {
     event.source?.postMessage({ type: 'randys-workroom:snapshot', payload: repairWorkroomSnapshot() }, event.origin);
