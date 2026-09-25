@@ -149,13 +149,14 @@ function ensureSetup() {
 }
 
 function addMissingSites() {
-  var props = PropertiesService.getScriptProperties();
-  if (props.getProperty(ADDED_SITES_KEY)) return;
+  // Marker lives in sheet metadata (not PropertiesService) so the script keeps
+  // its original spreadsheets.currentonly scope and needs no re-authorization.
   var sheet = sheetByName(SITES_SHEET);
+  if (sheet.createDeveloperMetadataFinder().withKey(ADDED_SITES_KEY).find().length) return;
   ADDED_SITES.forEach(function (s) {
     if (!findRow(sheet, 1, s[0])) sheet.appendRow([s[0], s[1], s[2], sheet.getLastRow()]);
   });
-  props.setProperty(ADDED_SITES_KEY, '1');
+  sheet.addDeveloperMetadata(ADDED_SITES_KEY, '1');
 }
 
 function styleHeader(sheet, n) {
